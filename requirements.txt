@@ -1,1 +1,31 @@
+# Streamlit for creating the user interface
 streamlit
+
+# Groq model and LangChain Groq support
+langchain_groq
+python-dotenv
+
+# Hugging Face Transformers for RAG model
+transformers
+torch
+
+# Sentence Transformers for similarity checks
+sentence-transformers
+
+# LangChain for building chains and managing retrieval
+langchain
+
+# FAISS for document retrieval
+faiss-cpu
+
+# Requests for fetching news articles
+requests
+
+# LangGraph for structured task flow
+langgraph
+
+# HuggingFace Hub (for model downloads)
+huggingface-hub
+
+langchain_core
+
