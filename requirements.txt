@@ -28,4 +28,6 @@ langgraph
 huggingface-hub
 
 langchain_core
+IPython
+langchain_openai 
 
