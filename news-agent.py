@@ -1,312 +1,174 @@
-# import os
-# import streamlit as st
-# from dotenv import load_dotenv
-# from langchain_groq import ChatGroq
-# import requests
-# from typing import Dict, List, Tuple
-
-# # Load environment variables
-# load_dotenv()
-
-# # Get API keys from environment
-# GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-# NEWS_API_KEY = os.getenv('NEWS_API_KEY')
-
-# # Initialize Groq model
-# groq_instance = ChatGroq(model="llama-3.1-70b-versatile", temperature=0.5, api_key=GROQ_API_KEY)
-
-# # Function to retrieve news articles
-# def fetch_news(topic: str, max_results: int = 5) -> List[Dict]:
-#     url = (f"https://newsapi.org/v2/everything?q={topic}&apiKey={NEWS_API_KEY}&pageSize={max_results}")
-#     response = requests.get(url)
-#     news_data = response.json()
-#     if news_data["status"] == "ok":
-#         return news_data["articles"]
-#     else:
-#         raise Exception(f"Error fetching news: {news_data['message']}")
-
-# # Summarize News using Groq Model
-# def summarize_news(articles: List[Dict]) -> List[str]:
-#     summaries = []
-#     for article in articles:
-#         prompt = f"Summarize this news article: {article['title']} {article['description']}"
-#         try:
-#             summary = groq_instance(prompt)
-#             summaries.append(summary)
-#         except Exception as e:
-#             st.error(f"Error during summarization: {e}")
-#             summaries.append("Error in generating summary.")
-#     return summaries
-
-# # Check for inaccuracies in the news and provide corrections
-# def cross_check_inaccuracies(articles: List[Dict], summaries: List[str]) -> List[Dict]:
-#     corrected_summaries = []
-#     for i, article in enumerate(articles):
-#         prompt = (
-#             f"Here is a summary of the article: {summaries[i]}.\n"
-#             f"Check for any inaccuracies based on other reliable sources and provide corrections."
-#         )
-#         try:
-#             correction = groq_instance(prompt)
-#             corrected_summaries.append({"original": summaries[i], "corrected": correction})
-#         except Exception as e:
-#             st.error(f"Error during correction: {e}")
-#             corrected_summaries.append({"original": summaries[i], "corrected": "Error in correction."})
-#     return corrected_summaries
-
-# # Summarize News using Groq Model with debugging
-# def summarize_news(articles: List[Dict]) -> List[str]:
-#     summaries = []
-#     for article in articles:
-#         prompt = f"Summarize this news article: {article['title']} {article['description']}"
-#         try:
-#             # Debug: print the prompt being sent to the Groq model
-#             st.write(f"Prompt for summarization: {prompt}")
-            
-#             summary = groq_instance(prompt)
-            
-#             # Debug: print the type of response from the Groq model
-#             st.write(f"Response from Groq summarization: {type(summary)}, {summary}")
-            
-#             summaries.append(summary)
-#         except Exception as e:
-#             st.error(f"Error during summarization: {e}")
-#             summaries.append("Error in generating summary.")
-#     return summaries
-
-# # Check for inaccuracies in the news and provide corrections with debugging
-# def cross_check_inaccuracies(articles: List[Dict], summaries: List[str]) -> List[Dict]:
-#     corrected_summaries = []
-#     for i, article in enumerate(articles):
-#         prompt = (
-#             f"Here is a summary of the article: {summaries[i]}.\n"
-#             f"Check for any inaccuracies based on other reliable sources and provide corrections."
-#         )
-#         try:
-#             # Debug: print the prompt being sent for correction
-#             st.write(f"Prompt for correction: {prompt}")
-            
-#             correction = groq_instance(prompt)
-            
-#             # Debug: print the type of response from the Groq model
-#             st.write(f"Response from Groq correction: {type(correction)}, {correction}")
-            
-#             corrected_summaries.append({"original": summaries[i], "corrected": correction})
-#         except Exception as e:
-#             st.error(f"Error during correction: {e}")
-#             corrected_summaries.append({"original": summaries[i], "corrected": "Error in correction."})
-#     return corrected_summaries
-
-# # Grade the reliability of news sources with debugging
-# def grade_reliability(articles: List[Dict]) -> List[Tuple[str, str]]:
-#     graded_sources = []
-#     for article in articles:
-#         source = article['source']['name']
-#         prompt = f"Grade the reliability of the source '{source}' on a scale of 1 to 10 and explain your rating."
-#         try:
-#             # Debug: print the prompt for reliability grading
-#             st.write(f"Prompt for reliability grading: {prompt}")
-            
-#             reliability_rating = groq_instance(prompt)
-            
-#             # Debug: print the type of response from the Groq model
-#             st.write(f"Response from Groq reliability grading: {type(reliability_rating)}, {reliability_rating}")
-            
-#             graded_sources.append((source, reliability_rating))
-#         except Exception as e:
-#             st.error(f"Error during reliability grading: {e}")
-#             graded_sources.append((source, "Error in grading."))
-#     return graded_sources
-
-
-# # Streamlit App
-# def app():
-#     st.title("Real-Time News Summarization and Correction Agent")
-    
-#     # Input for topic
-#     topic = st.text_input("Enter the topic for news summarization", "artificial intelligence")
-    
-#     # Input for number of articles to retrieve
-#     max_results = st.slider("Number of articles to retrieve", 1, 10, 5)
-    
-#     if st.button("Fetch News and Summarize"):
-#         try:
-#             # Fetch news articles
-#             with st.spinner("Fetching news articles..."):
-#                 articles = fetch_news(topic, max_results)
-            
-#             # Display raw articles
-#             st.subheader(f"Top {max_results} Articles for '{topic}'")
-#             for i, article in enumerate(articles):
-#                 st.write(f"**{i + 1}. {article['title']}**")
-#                 st.write(f"Source: {article['source']['name']}")
-#                 st.write(article['description'])
-#                 st.markdown(f"[Read more]({article['url']})", unsafe_allow_html=True)  # Make the link clickable
-#                 st.write("—" * 10)
-            
-#             # Summarize news articles
-#             with st.spinner("Summarizing articles..."):
-#                 summaries = summarize_news(articles)
-            
-#             # Cross-check inaccuracies and generate corrected summaries
-#             with st.spinner("Checking for inaccuracies and providing corrections..."):
-#                 corrected_summaries = cross_check_inaccuracies(articles, summaries)
-            
-#             # Grade source reliability
-#             with st.spinner("Grading source reliability..."):
-#                 reliability_grades = grade_reliability(articles)
-            
-#             # Display results
-#             st.subheader("Summarized and Corrected Articles")
-#             for i, article in enumerate(articles):
-#                 st.write(f"**{i + 1}. {article['title']}**")
-#                 st.write(f"Source: {article['source']['name']}")
-#                 st.write(f"Original Summary: {corrected_summaries[i]['original']}")
-#                 st.write(f"Corrected Summary: {corrected_summaries[i]['corrected']}")
-#                 st.write(f"Source Reliability: {reliability_grades[i][1]}")
-#                 st.write("—" * 10)
-        
-#         except Exception as e:
-#             st.error(f"Error: {e}")
-
-# # Run the app
-# if __name__ == "__main__":
-#     app()
-
-
+import streamlit as st
+from dotenv import load_dotenv
 import os
 import requests
-from langchain_openai import ChatOpenAI
-from datetime import datetime, timedelta
-import streamlit as st
+from typing import Dict
+from langgraph.graph import StateGraph, END
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
 
-# Initialize the OpenAI LLM
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3, api_key="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")
+# Load environment variables from .env file
+load_dotenv()
 
+# Get API keys from environment
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+news_api_key = os.getenv("NEWS_API_KEY")
 
-# Define a list of reliable sources
-reliable_sources = ['BBC', 'Reuters', 'The New York Times', 'The Guardian']
+# Set Groq API key in the environment
+groq_instance = ChatGroq(model="llama-3.1-70b-versatile", temperature=0.5, api_key=GROQ_API_KEY)
 
-# Step 1: Retrieve News Articles
-def get_news_articles(topic: str, num_articles: int):
-    """Fetch latest news articles based on a topic."""
-    api_key = os.getenv("NEWS_API_KEY")  # Get the API key from environment variable
-    url = f"https://newsapi.org/v2/everything?q={topic}&sortBy=publishedAt&apiKey={api_key}&pageSize={num_articles}"
+# Define State Structure
+class State(Dict):
+    news_content: str
+    summary: str
+    correctness: str
+    category: str
+    sentiment: str
+    bias: str
+    reliability_score: str
+
+# Node Functions
+def summarize(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Summarize the following news content in a few sentences: {news_content}"
+    )
+    chain = prompt | ChatGroq(temperature=0.5)
+    summary = chain.invoke({"news_content": state["news_content"]}).content
+    return {"summary": summary}
+
+def check_correctness(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Check the correctness of the following news content: {news_content}"
+    )
+    chain = prompt | ChatGroq(temperature=0.5)
+    correctness = chain.invoke({"news_content": state["news_content"]}).content
+    return {"correctness": correctness}
+
+def categorize(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Categorize the following news article into Politics, Sports, Technology, or General. Article: {news_content}"
+    )
+    chain = prompt | ChatGroq(temperature=0)
+    category = chain.invoke({"news_content": state["news_content"]}).content
+    return {"category": category}
+
+def analyze_sentiment(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Analyze the sentiment of the following news content: {news_content}. "
+        "Respond with either 'Positive', 'Neutral', or 'Negative'."
+    )
+    chain = prompt | ChatGroq(temperature=0)
+    sentiment = chain.invoke({"news_content": state["news_content"]}).content
+    return {"sentiment": sentiment}
+
+def detect_bias(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Detect any potential bias in the following news article: {news_content}."
+    )
+    chain = prompt | ChatGroq(temperature=0)
+    bias = chain.invoke({"news_content": state["news_content"]}).content
+    return {"bias": bias}
+
+def compute_reliability(state: State) -> State:
+    prompt = ChatPromptTemplate.from_template(
+        "Based on cross-referencing sources, provide a reliability score (0-100) for the following article: {news_content}"
+    )
+    chain = prompt | ChatGroq(temperature=0)
+    score = chain.invoke({"news_content": state["news_content"]}).content
+    return {"reliability_score": str(score)}
+
+# Create and Configure the Graph
+news_workflow = StateGraph(State)
+news_workflow.add_node("summarize", summarize)
+news_workflow.add_node("check_correctness", check_correctness)
+news_workflow.add_node("categorize", categorize)
+news_workflow.add_node("analyze_sentiment", analyze_sentiment)
+news_workflow.add_node("detect_bias", detect_bias)
+news_workflow.add_node("compute_reliability", compute_reliability)
+
+# Define the workflow connections
+news_workflow.add_edge("summarize", "check_correctness")
+news_workflow.add_edge("check_correctness", "categorize")
+news_workflow.add_edge("categorize", "analyze_sentiment")
+news_workflow.add_edge("analyze_sentiment", "detect_bias")
+news_workflow.add_edge("detect_bias", "compute_reliability")
+news_workflow.add_edge("compute_reliability", END)
+
+# Set entry point
+news_workflow.set_entry_point("summarize")
+
+# Compile the workflow
+news_app = news_workflow.compile()
+
+# Function to run the agent
+def run_news_agent(news_content: str) -> Dict[str, str]:
+    """Process news content through the LangGraph workflow and return the results."""
+    results = news_app.invoke({"news_content": news_content})
+    return {
+        "summary": results["summary"],
+        "correctness": results["correctness"],
+        "category": results["category"],
+        "sentiment": results["sentiment"],
+        "bias": results.get("bias", "N/A"),
+        "reliability_score": results.get("reliability_score", "N/A")
+    }
+
+# Function to fetch news articles using News API
+def fetch_news_articles(query: str):
+    news_api_url = "https://newsapi.org/v2/everything"
+    headers = {
+        "Authorization": f"Bearer {news_api_key}"
+    }
+    params = {
+        "q": query,
+        "language": "en"
+    }
     
-    response = requests.get(url)
-    if response.status_code != 200:
-        st.error("Failed to fetch articles. Please check the API key and topic.")
-        return []
+    response = requests.get(news_api_url, headers=headers, params=params)
     
-    articles = response.json().get('articles', [])
-    
-    # Debug: Log the retrieved articles
-    for article in articles:
-        print(f"Title: {article['title']}, Source: {article['source']['name']}, Published At: {article['publishedAt']}")
-    
-    return [
-        {
-            'title': article['title'],
-            'description': article['description'],
-            'content': article['content'],
-            'url': article['url'],
-            'source': article['source']['name'],
-            'publishedAt': article['publishedAt']
-        }
-        for article in articles
-    ]
-
-# Step 2: Filter Recent News
-def filter_recent_news(articles, days=1):
-    """Filter news articles to retrieve only recent ones."""
-    recent_articles = []
-    cutoff_time = datetime.now() - timedelta(days=days)
-    
-    for article in articles:
-        article_time = datetime.strptime(article['publishedAt'], '%Y-%m-%dT%H:%M:%SZ')
-        if article_time > cutoff_time:
-            recent_articles.append(article)
-    
-    # Debug: Log the filtered recent articles
-    for article in recent_articles:
-        print(f"Filtered Title: {article['title']}, Source: {article['source']['name']}")
-            
-    return recent_articles
-
-# Step 3: Summarize Articles
-def summarize_article(article):
-    """Summarize a given news article."""
-    prompt = f"Summarize the following article:\n{article['content']}\n"
-    summary = llm.predict(prompt)
-    return summary
-
-# Step 4: Cross-Reference Articles
-def cross_reference_articles(articles):
-    """Compare and cross-reference key points between articles."""
-    summaries = [summarize_article(article) for article in articles]
-    
-    # Collect unique key points from all summaries
-    combined_summary = " ".join(summaries)
-    return combined_summary
-
-# Step 5: Grade Source Reliability
-def grade_source_reliability(source_name):
-    """Grade the reliability of the news source."""
-    if source_name in reliable_sources:
-        return 9  # High reliability
+    if response.status_code == 200:
+        articles = response.json().get('articles', [])
+        return articles
     else:
-        return 1  # Lower reliability for less-known sources
+        raise Exception(f"Failed to fetch news articles: {response.status_code}")
 
-# Step 6: Correct and Finalize the Summary
-def correct_summary(articles):
-    """Correct summary based on cross-referenced articles and source reliability."""
-    reliable_summaries = []
-    
-    for article in articles:
-        reliability_grade = grade_source_reliability(article['source'])
-        summary = summarize_article(article)
-        # Append the summary along with its reliability grade
-        reliable_summaries.append((summary, reliability_grade))
-    
-    # Sort summaries by reliability grade
-    reliable_summaries.sort(key=lambda x: x[1], reverse=True)
-    
-    # If there are no reliable summaries, return the best available summary
-    if reliable_summaries:
-        return reliable_summaries[0][0]  # Return the highest reliability summary
-    return "No reliable summaries found."
+# Streamlit App
+st.title("News Summarization and Correctness Agent")
 
-# Step 7: News Summarization Agent
-def news_summary_agent(topic: str, num_articles: int):
-    """Main function for retrieving, summarizing, and correcting news on a given topic."""
-    # Step 1: Get news articles
-    articles = get_news_articles(topic, num_articles)
-    
-    # Step 2: Filter for recent news
-    recent_articles = filter_recent_news(articles)
-    
-    # Step 3: Cross-reference articles (optional but can enhance summary)
-    cross_reference_articles(recent_articles)
-    
-    # Step 4: Correct and finalize summary
-    final_summary = correct_summary(recent_articles)
-    
-    return final_summary
+# Get user input for the news query
+query = st.text_input("Enter a news topic or keyword to analyze:")
 
-# Streamlit app interface
-def main():
-    st.title("Real-Time News Summarization and Correction Agent")
-    topic = st.text_input("Enter a topic for news summarization:", "artificial intelligence")
-    num_articles = st.slider("Number of articles to retrieve:", 1, 20, 5)
+if st.button("Analyze News"):
+    if query:
+        # Fetch and display news articles
+        try:
+            articles = fetch_news_articles(query)
+            st.write(f"Found {len(articles)} articles on '{query}':")
+            
+            for article in articles:
+                st.subheader(article["title"])
+                st.write(f"URL: {article['url']}")
+                
+                # Run the news agent to process the article content
+                result = run_news_agent(article["content"])
 
-    if st.button("Get Summary"):
-        with st.spinner("Fetching news..."):
-            summary = news_summary_agent(topic, num_articles)
-            if summary:
-                st.success("Summary fetched successfully!")
-                st.write(summary)
-            else:
-                st.error("No summaries available for the provided topic.")
+                # Function to colorize each result section
+                def colorize_result(result_key, result_value, color):
+                    st.markdown(f"""
+                        <div style="background-color: {color}; padding: 10px; border-radius: 5px;">
+                            <strong>{result_key}:</strong> {result_value}
+                        </div>
+                    """, unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    main()
+                # Display the results
+                colorize_result("Summary", result['summary'], '#f0f9ff')
+                colorize_result("Correctness", result['correctness'], '#e0ffe0')
+                colorize_result("Category", result['category'], '#fff8e1')
+                colorize_result("Sentiment", result['sentiment'], '#fbe7e9')
+                colorize_result("Bias", result['bias'], '#fef9e7') 
+                colorize_result("Reliability Score", result['reliability_score'], '#e7f9e7')
+                st.write("\n---\n")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+    else:
+        st.warning("Please enter a query to analyze.")
